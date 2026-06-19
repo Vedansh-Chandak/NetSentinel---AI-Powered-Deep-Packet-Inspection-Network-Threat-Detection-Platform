@@ -46,4 +46,9 @@ void ProtocolStats::printStats() const
         << "ICMP : "
         << icmpCount
         << "\n";
+
+    std::cout
+        << "TOTAL: "
+        << total
+        << "\n";
 }

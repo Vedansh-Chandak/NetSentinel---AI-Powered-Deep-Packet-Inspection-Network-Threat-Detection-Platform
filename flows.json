@@ -1,0 +1,324 @@
+[
+  {
+    "flow": "192.168.31.44:0 -> 8.8.4.4:0",
+    "packets": 1,
+    "bytes": 36,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:19444",
+    "packets": 1,
+    "bytes": 315,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:51461 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 74,
+    "application": "Unknown",
+    "domain": "main.vscode-cdn.net"
+  },
+  {
+    "flow": "192.168.31.44:62885 -> 20.189.172.73:443",
+    "packets": 14,
+    "bytes": 2362,
+    "application": "Unknown",
+    "domain": "westus-0.in.applicationinsights.azure.com"
+  },
+  {
+    "flow": "192.168.31.44:62884 -> 34.49.39.67:443",
+    "packets": 12,
+    "bytes": 2618,
+    "application": "Unknown",
+    "domain": "otel.cline.bot"
+  },
+  {
+    "flow": "8.8.8.8:53 -> 192.168.31.44:51033",
+    "packets": 1,
+    "bytes": 46,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:16713 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 56,
+    "application": "Google",
+    "domain": "dns.google"
+  },
+  {
+    "flow": "192.168.31.44:51033 -> 8.8.8.8:53",
+    "packets": 2,
+    "bytes": 60,
+    "application": "Facebook",
+    "domain": "facebook.com"
+  },
+  {
+    "flow": "4.225.11.192:443 -> 192.168.31.44:62867",
+    "packets": 1,
+    "bytes": 0,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "20.189.172.73:443 -> 192.168.31.44:62885",
+    "packets": 11,
+    "bytes": 5334,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:62867 -> 4.225.11.192:443",
+    "packets": 1,
+    "bytes": 0,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.26:57621 -> 192.168.31.255:57621",
+    "packets": 1,
+    "bytes": 44,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:17556 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 56,
+    "application": "Google",
+    "domain": "dns.google"
+  },
+  {
+    "flow": "8.8.8.8:53 -> 192.168.31.44:51066",
+    "packets": 1,
+    "bytes": 46,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:51461",
+    "packets": 1,
+    "bytes": 206,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "17.242.13.4:5223 -> 192.168.31.44:50501",
+    "packets": 2,
+    "bytes": 355,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "13.67.9.5:443 -> 192.168.31.44:62794",
+    "packets": 2,
+    "bytes": 794,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:50501 -> 17.242.13.4:5223",
+    "packets": 2,
+    "bytes": 32,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:62777 -> 52.182.143.208:443",
+    "packets": 36,
+    "bytes": 16350,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:62801 -> 18.97.36.54:443",
+    "packets": 5,
+    "bytes": 269,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:60267",
+    "packets": 1,
+    "bytes": 287,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:63941",
+    "packets": 1,
+    "bytes": 287,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "52.182.143.208:443 -> 192.168.31.44:62777",
+    "packets": 45,
+    "bytes": 698,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:15754",
+    "packets": 1,
+    "bytes": 233,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "17.248.239.64:443 -> 192.168.31.44:59999",
+    "packets": 14,
+    "bytes": 4159,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:17556",
+    "packets": 1,
+    "bytes": 84,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.8.8:443 -> 192.168.31.44:50530",
+    "packets": 70,
+    "bytes": 10691,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:59999 -> 17.248.239.64:443",
+    "packets": 8,
+    "bytes": 399,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:46266 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 74,
+    "application": "Unknown",
+    "domain": "main.vscode-cdn.net"
+  },
+  {
+    "flow": "8.8.8.8:53 -> 192.168.31.44:50974",
+    "packets": 1,
+    "bytes": 46,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:62794 -> 13.67.9.5:443",
+    "packets": 4,
+    "bytes": 1678,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:19444 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 74,
+    "application": "Unknown",
+    "domain": "main.vscode-cdn.net"
+  },
+  {
+    "flow": "192.168.31.44:51066 -> 8.8.8.8:53",
+    "packets": 2,
+    "bytes": 60,
+    "application": "Facebook",
+    "domain": "facebook.com"
+  },
+  {
+    "flow": "34.49.39.67:443 -> 192.168.31.44:62884",
+    "packets": 9,
+    "bytes": 980,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:63941 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 96,
+    "application": "Unknown",
+    "domain": "vscode-sync.trafficmanager.net"
+  },
+  {
+    "flow": "192.168.31.44:0 -> 224.0.0.22:0",
+    "packets": 8,
+    "bytes": 128,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:60207",
+    "packets": 1,
+    "bytes": 60,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:15754 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 96,
+    "application": "Unknown",
+    "domain": "vscode-sync.trafficmanager.net"
+  },
+  {
+    "flow": "192.168.31.44:50974 -> 8.8.8.8:53",
+    "packets": 2,
+    "bytes": 60,
+    "application": "Facebook",
+    "domain": "facebook.com"
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:46266",
+    "packets": 1,
+    "bytes": 230,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:50530 -> 8.8.8.8:443",
+    "packets": 34,
+    "bytes": 3243,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "18.97.36.54:443 -> 192.168.31.44:62801",
+    "packets": 4,
+    "bytes": 142,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:60207 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 56,
+    "application": "Google",
+    "domain": "dns.google"
+  },
+  {
+    "flow": "192.168.31.1:0 -> 224.0.0.1:0",
+    "packets": 7,
+    "bytes": 84,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "8.8.4.4:53 -> 192.168.31.44:16713",
+    "packets": 1,
+    "bytes": 104,
+    "application": "",
+    "domain": ""
+  },
+  {
+    "flow": "192.168.31.44:60267 -> 8.8.4.4:53",
+    "packets": 2,
+    "bytes": 96,
+    "application": "Unknown",
+    "domain": "vscode-sync.trafficmanager.net"
+  }
+]

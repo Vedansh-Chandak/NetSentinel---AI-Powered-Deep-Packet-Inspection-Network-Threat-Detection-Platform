@@ -11,6 +11,21 @@ public:
 
     void printStats() const;
 
+    uint64_t getTCP() const
+    {
+        return tcpCount;
+    }
+
+    uint64_t getUDP() const
+    {
+        return udpCount;
+    }
+
+    uint64_t getICMP() const
+    {
+        return icmpCount;
+    }
+
 private:
     uint64_t tcpCount = 0;
     uint64_t udpCount = 0;

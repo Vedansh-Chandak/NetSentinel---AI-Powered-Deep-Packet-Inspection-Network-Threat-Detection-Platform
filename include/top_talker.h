@@ -14,6 +14,14 @@ public:
 
     void printTop() const;
 
+    const std::unordered_map<
+        std::string,
+        uint64_t
+    >& getTalkers() const
+    {
+        return ipBytes_;
+    }
+
 private:
     std::unordered_map<
         std::string,

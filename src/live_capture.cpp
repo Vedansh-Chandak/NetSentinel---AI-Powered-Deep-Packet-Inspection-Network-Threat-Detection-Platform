@@ -13,6 +13,10 @@
 #include "service_mapper.h"
 #include "protocol_stats.h"
 #include "csv_exporter.h"
+#include "json_exporter.h"
+#include "api_server.h"
+#include "global_state.h"
+
 
 using namespace PacketAnalyzer;
 
@@ -86,7 +90,39 @@ bool LiveCapture::start(const char* interfaceName)
 AppTracker appTracker;
 TopTalker topTalker;
 ThreatDetector threatDetector;
+
+if (!threatDetector.loadRules("rules.txt"))
+{
+    std::cout
+        << "Failed to load rules.txt\n";
+
+    threatDetector.loadDefaultRules();
+}
+
+if (!threatDetector.loadDomainRules(
+        "domains.txt"))
+{
+    std::cout
+        << "Failed to load domains.txt\n";
+}
+
 ProtocolStats protocolStats;
+
+gFlowTracker = &tracker;
+gAppTracker = &appTracker;
+gTopTalker = &topTalker;
+gProtocolStats = &protocolStats;
+gThreatDetector = &threatDetector;
+
+std::cout << "\n===== GLOBAL STATE =====\n";
+
+std::cout << "FlowTracker     : " << gFlowTracker << '\n';
+std::cout << "AppTracker      : " << gAppTracker << '\n';
+std::cout << "TopTalker       : " << gTopTalker << '\n';
+std::cout << "ProtocolStats   : " << gProtocolStats << '\n';
+std::cout << "ThreatDetector  : " << gThreatDetector << '\n';
+
+APIServer::start();
 uint64_t packetCounter = 0;
 
     struct pcap_pkthdr* header;
@@ -151,14 +187,6 @@ if (parsed.has_tcp || parsed.has_udp)
 
 
 
-    if (parsed.has_tcp || parsed.has_udp)
-{
-    threatDetector.analyzePacket(
-    parsed.src_ip,
-    parsed.dest_ip,
-    parsed.dest_port
-);
-}
 
 // =====================================================
 // Track every packet
@@ -203,36 +231,42 @@ if (parsed.has_tcp &&
             parsed.payload_data,
             parsed.payload_length
         );
+    
 
     if (domain)
-    {
-        std::string app =
-            classifyDomain(*domain);
+{
+    threatDetector.analyzeDomain(
+        parsed.src_ip,
+        *domain
+    );
 
-        appTracker.addTraffic(
-            app,
-            parsed.payload_length
-        );
+    std::string app =
+        classifyDomain(*domain);
 
-        tracker.addPacket(
-            parsed.src_ip,
-            parsed.dest_ip,
-            parsed.src_port,
-            parsed.dest_port,
-            parsed.payload_length,
-            *domain,
-            app
-        );
+    appTracker.addTraffic(
+        app,
+        parsed.payload_length
+    );
 
-        std::cout
-            << "\n[APP] "
-            << app
-            << "\n[HTTPS DOMAIN] "
-            << *domain
-            << std::endl;
-    }
+    tracker.addPacket(
+        parsed.src_ip,
+        parsed.dest_ip,
+        parsed.src_port,
+        parsed.dest_port,
+        parsed.payload_length,
+        *domain,
+        app
+    );
+
+    std::cout
+        << "\n[APP] "
+        << app
+        << "\n[DNS QUERY] "
+        << *domain
+        << std::endl;
+   }
+
 }
-
 // =====================================================
 // QUIC Detection
 // =====================================================
@@ -269,8 +303,15 @@ if (parsed.has_udp &&
 
         if (domain)
 {
+
+      threatDetector.analyzeDomain(
+    parsed.src_ip,
+    *domain
+);
     std::string app =
         classifyDomain(*domain);
+
+      
 
     appTracker.addTraffic(
         app,
@@ -346,9 +387,16 @@ CSVExporter::exportFlows(
     tracker.getFlows(),
     "flows.csv"
 );
+
+JSONExporter::exportFlows(
+    tracker.getFlows(),
+    "flows.json"
+);
 }
     }
 
     pcap_close(handle);
     return true;
 }
+
+

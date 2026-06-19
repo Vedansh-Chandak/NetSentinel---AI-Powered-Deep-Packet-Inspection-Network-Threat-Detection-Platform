@@ -1,0 +1,6 @@
+facebook.com,HIGH
+instagram.com,HIGH
+telegram.org,MEDIUM
+discord.com,MEDIUM
+malware.test,CRITICAL
+phishing.test,CRITICAL

@@ -20,6 +20,17 @@ public:
 
     void printStats() const;
 
+    const std::unordered_map<
+        std::string,
+        AppStats
+    >& getApps() const
+    {
+        return apps_;
+    }
+
 private:
-    std::unordered_map<std::string, AppStats> apps_;
+    std::unordered_map<
+        std::string,
+        AppStats
+    > apps_;
 };

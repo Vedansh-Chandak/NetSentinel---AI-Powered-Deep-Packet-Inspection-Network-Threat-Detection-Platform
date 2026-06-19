@@ -1,6 +1,9 @@
 #include "sni_extractor.h"
 #include <cstring>
 #include <algorithm>
+#include <iostream>
+#include <cstdio>
+
 
 namespace DPI {
 
@@ -206,56 +209,118 @@ std::optional<std::string> HTTPHostExtractor::extract(const uint8_t* payload, si
 // DNS Extractor Implementation
 // ============================================================================
 
-bool DNSExtractor::isDNSQuery(const uint8_t* payload, size_t length) {
-    // Minimum DNS header is 12 bytes
-    if (length < 12) return false;
-    
-    // Check QR bit (byte 2, bit 7) - should be 0 for query
-    uint8_t flags = payload[2];
-    if (flags & 0x80) return false;  // This is a response, not a query
-    
-    // Check QDCOUNT (bytes 4-5) - should be > 0
-    uint16_t qdcount = (static_cast<uint16_t>(payload[4]) << 8) | payload[5];
-    if (qdcount == 0) return false;
-    
-    return true;
+bool DNSExtractor::isDNSQuery(
+    const uint8_t* payload,
+    size_t length)
+{
+    // DNS header = 12 bytes
+    if (length < 12)
+    {
+        return false;
+    }
+
+    // Debug
+    std::cout
+        << "\n[DNS HEADER]"
+        << " QR=" << ((payload[2] & 0x80) ? 1 : 0)
+        << " QDCOUNT="
+        << ((payload[4] << 8) | payload[5])
+        << std::endl;
+
+    // Query count
+    uint16_t qdcount =
+        (static_cast<uint16_t>(payload[4]) << 8)
+        | payload[5];
+
+    return qdcount > 0;
 }
 
-std::optional<std::string> DNSExtractor::extractQuery(const uint8_t* payload, size_t length) {
-    if (!isDNSQuery(payload, length)) {
+std::optional<std::string>
+DNSExtractor::extractQuery(
+    const uint8_t* payload,
+    size_t length)
+{
+    std::cout
+        << "\n[DNS DEBUG]"
+        << " Length=" << length
+        << " FirstBytes=";
+
+    for (
+        size_t i = 0;
+        i < std::min(length, size_t(20));
+        i++)
+    {
+        printf("%02X ", payload[i]);
+    }
+
+    std::cout << std::endl;
+
+    if (!isDNSQuery(payload, length))
+    {
+        std::cout
+            << "[DNS DEBUG] Not DNS"
+            << std::endl;
+
         return std::nullopt;
     }
-    
-    // DNS query starts at byte 12
+
     size_t offset = 12;
     std::string domain;
-    
-    while (offset < length) {
-        uint8_t label_length = payload[offset];
-        
-        if (label_length == 0) {
-            // End of domain name
+
+    while (offset < length)
+    {
+        uint8_t label_length =
+            payload[offset];
+
+        if (label_length == 0)
+        {
             break;
         }
-        
-        if (label_length > 63) {
-            // Compression pointer or invalid
+
+        if (label_length > 63)
+        {
+            std::cout
+                << "[DNS DEBUG] Invalid label="
+                << (int)label_length
+                << std::endl;
+
             break;
         }
-        
+
         offset++;
-        if (offset + label_length > length) break;
-        
-        if (!domain.empty()) {
+
+        if (
+            offset + label_length >
+            length)
+        {
+            break;
+        }
+
+        if (!domain.empty())
+        {
             domain += '.';
         }
-        domain += std::string(reinterpret_cast<const char*>(payload + offset), label_length);
+
+        domain += std::string(
+            reinterpret_cast<
+                const char*>(
+                    payload + offset),
+            label_length
+        );
+
         offset += label_length;
     }
-    
-    return domain.empty() ? std::nullopt : std::optional<std::string>(domain);
-}
 
+    std::cout
+        << "[DNS DOMAIN] "
+        << domain
+        << std::endl;
+
+    return domain.empty()
+        ? std::nullopt
+        : std::optional<std::string>(
+            domain);
+}
 // ============================================================================
 // QUIC SNI Extractor (simplified)
 // ============================================================================

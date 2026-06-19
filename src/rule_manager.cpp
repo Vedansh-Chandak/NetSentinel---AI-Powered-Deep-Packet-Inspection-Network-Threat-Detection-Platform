@@ -228,9 +228,13 @@ std::optional<RuleManager::BlockReason> RuleManager::shouldBlock(
     }
     
     // Check domain
-    if (!domain.empty() && isDomainBlocked(domain)) {
-        return BlockReason{BlockReason::DOMAIN, domain};
-    }
+   // Check domain
+if (!domain.empty() && isDomainBlocked(domain)) {
+    return BlockReason{
+        BlockReason::DOMAIN_RULE,
+        domain
+    };
+}
     
     return std::nullopt;
 }

@@ -1,6 +1,34 @@
 #include "threat_detector.h"
 
 #include <iostream>
+#include <cctype>
+
+namespace
+{
+    bool looksSuspiciousDomain(
+        const std::string& domain
+    )
+    {
+        if (domain.size() > 40)
+        {
+            return true;
+        }
+
+        int digits = 0;
+
+        for (char c : domain)
+        {
+            if (std::isdigit(
+                static_cast<unsigned char>(c)))
+            {
+                digits++;
+            }
+        }
+
+        return digits >= 8;
+    }
+}
+
 
 void ThreatDetector::analyzePacket(
     const std::string& srcIP,
@@ -17,13 +45,59 @@ void ThreatDetector::analyzePacket(
         return;
     }
 
-    // Ignore multicast/broadcast
+    // Ignore multicast traffic
     if (dstIP.rfind("224.", 0) == 0)
     {
         return;
     }
 
-    scannedPorts_[srcIP].insert(dstPort);
+    scannedPorts_[srcIP].insert(
+        dstPort
+    );
+
+    // =====================================
+    // Suspicious Port Detection
+    // =====================================
+for (const auto& rule : rules_)
+{
+    if (dstPort == rule.port)
+    {
+        alerts_.push_back(
+        {
+            rule.severity,
+            rule.name,
+            srcIP,
+            "Connected to port " +
+            std::to_string(dstPort)
+        });
+    }
+}
+
+    // =====================================
+    // Port Scan Detection
+    // =====================================
+
+    if (
+    scannedPorts_[srcIP].size() >= 10 &&
+    alertedScanners_.count(srcIP) == 0
+)
+{
+    alerts_.push_back(
+    {
+        "HIGH",
+        "Port Scan",
+        srcIP,
+        "Touched " +
+        std::to_string(
+            scannedPorts_[srcIP].size()
+        ) +
+        " ports"
+    });
+
+    alertedScanners_.insert(
+        srcIP
+    );
+}
 }
 
 void ThreatDetector::printAlerts() const
@@ -33,26 +107,249 @@ void ThreatDetector::printAlerts() const
         << "SECURITY ALERTS\n"
         << "=====================================\n";
 
-    bool found = false;
-
-    for (const auto& [ip, ports] : scannedPorts_)
-    {
-        if (ports.size() >= 10)
-        {
-            found = true;
-
-            std::cout
-                << "[PORT SCAN] "
-                << ip
-                << " touched "
-                << ports.size()
-                << " ports\n";
-        }
-    }
-
-    if (!found)
+    if (alerts_.empty())
     {
         std::cout
             << "No threats detected.\n";
+        return;
     }
+
+    for (const auto& alert : alerts_)
+    {
+        std::cout
+         << "[" << alert.severity << "] "
+            << "[" << alert.type << "] "
+            << alert.sourceIP
+            << " - "
+            << alert.details
+            << "\n";
+    }
+}
+int ThreatDetector::getThreatScore() const
+{
+    int score = 0;
+
+    for (const auto& alert : alerts_)
+    {
+        if (alert.type == "Port Scan")
+        {
+            score += 40;
+        }
+        else if (
+            alert.type ==
+            "Suspicious Port")
+        {
+            score += 20;
+        }
+    }
+
+    if (score > 100)
+    {
+        score = 100;
+    }
+
+    return score;
+}
+
+void ThreatDetector::loadDefaultRules()
+{
+    rules_.push_back(
+    {
+        "TELNET",
+        23,
+        "HIGH"
+    });
+
+    rules_.push_back(
+    {
+        "FTP",
+        21,
+        "MEDIUM"
+    });
+
+    rules_.push_back(
+    {
+        "SMB",
+        445,
+        "HIGH"
+    });
+
+    rules_.push_back(
+    {
+        "RDP",
+        3389,
+        "HIGH"
+    });
+
+    rules_.push_back(
+    {
+        "MYSQL",
+        3306,
+        "LOW"
+    });
+}
+bool ThreatDetector::loadRules(
+    const std::string& filename)
+{
+    std::ifstream file(filename);
+
+    if (!file.is_open())
+    {
+        return false;
+    }
+
+    rules_.clear();
+
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        if (line.empty())
+            continue;
+
+        std::stringstream ss(line);
+
+        std::string name;
+        std::string portStr;
+        std::string severity;
+
+        std::getline(ss, name, ',');
+        std::getline(ss, portStr, ',');
+        std::getline(ss, severity);
+
+        Rule rule;
+
+        rule.name = name;
+        rule.port =
+            static_cast<uint16_t>(
+                std::stoi(portStr)
+            );
+        rule.severity = severity;
+
+        rules_.push_back(rule);
+    }
+
+    std::cout
+        << "Loaded "
+        << rules_.size()
+        << " IDS rules\n";
+
+    return true;
+}
+
+void ThreatDetector::analyzeDomain(
+    const std::string& srcIP,
+    const std::string& domain
+)
+{
+    std::cout
+    << "\n[DOMAIN CHECK] "
+    << domain
+    << " RulesLoaded="
+    << domainRules_.size()
+    << std::endl;
+
+for (const auto& rule :
+     domainRules_)
+{
+    
+    if (
+        domain.find(
+            rule.domain
+        ) != std::string::npos
+    )
+    {
+        alerts_.push_back(
+        {
+            rule.severity,
+            "Blocked Domain",
+            srcIP,
+            domain
+        });
+
+        return;
+    }
+}
+
+    static std::unordered_set<
+        std::string
+    > badDomains =
+    {
+        "malware.test",
+        "evil.test",
+        "phishing.test"
+    };
+
+    if (
+        badDomains.count(domain)
+    )
+    {
+        alerts_.push_back(
+        {
+            "HIGH",
+            "Malicious Domain",
+            srcIP,
+            domain
+        });
+
+        return;
+    }
+
+    if (
+        looksSuspiciousDomain(
+            domain
+        )
+    )
+    {
+        alerts_.push_back(
+        {
+            "MEDIUM",
+            "Suspicious Domain",
+            srcIP,
+            domain
+        });
+    }
+}
+
+bool ThreatDetector::loadDomainRules(
+    const std::string& filename)
+{
+    std::ifstream file(filename);
+
+    if (!file.is_open())
+    {
+        return false;
+    }
+
+    domainRules_.clear();
+
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        if (line.empty())
+            continue;
+
+        std::stringstream ss(line);
+
+        std::string domain;
+        std::string severity;
+
+        std::getline(ss, domain, ',');
+        std::getline(ss, severity);
+
+        DomainRule rule;
+
+        rule.domain = domain;
+        rule.severity = severity;
+
+        domainRules_.push_back(rule);
+    }
+
+    std::cout
+        << "Loaded "
+        << domainRules_.size()
+        << " Domain Rules\n";
+
+    return true;
 }
