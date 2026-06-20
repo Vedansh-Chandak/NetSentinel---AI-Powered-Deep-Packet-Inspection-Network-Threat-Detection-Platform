@@ -106,6 +106,13 @@ if (!threatDetector.loadDomainRules(
         << "Failed to load domains.txt\n";
 }
 
+if (!threatDetector.loadIPRules(
+        "bad_ips.txt"))
+{
+    std::cout
+        << "Failed to load bad_ips.txt\n";
+}
+
 ProtocolStats protocolStats;
 
 gFlowTracker = &tracker;
@@ -183,6 +190,14 @@ if (parsed.has_tcp || parsed.has_udp)
         parsed.dest_ip,
         parsed.dest_port
     );
+    
+    threatDetector.analyzeIP(
+    parsed.src_ip
+);
+
+threatDetector.analyzeIP(
+    parsed.dest_ip
+);
 }
 
 

@@ -311,6 +311,35 @@ for (const auto& rule :
     }
 }
 
+void ThreatDetector::analyzeIP(
+    const std::string& srcIP)
+{
+    for (const auto& rule :
+         ipRules_)
+    {
+        if (srcIP == rule.ip)
+        {
+            // Already alerted
+            if (alertedIPs_.count(srcIP))
+            {
+                return;
+            }
+
+            alertedIPs_.insert(srcIP);
+
+            alerts_.push_back(
+            {
+                rule.severity,
+                "Malicious IP",
+                srcIP,
+                srcIP
+            });
+
+            return;
+        }
+    }
+}
+
 bool ThreatDetector::loadDomainRules(
     const std::string& filename)
 {
@@ -350,6 +379,49 @@ bool ThreatDetector::loadDomainRules(
         << "Loaded "
         << domainRules_.size()
         << " Domain Rules\n";
+
+    return true;
+}
+
+bool ThreatDetector::loadIPRules(
+    const std::string& filename)
+{
+    std::ifstream file(filename);
+
+    if (!file.is_open())
+    {
+        return false;
+    }
+
+    ipRules_.clear();
+
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+        if (line.empty())
+            continue;
+
+        std::stringstream ss(line);
+
+        std::string ip;
+        std::string severity;
+
+        std::getline(ss, ip, ',');
+        std::getline(ss, severity);
+
+        IPRule rule;
+
+        rule.ip = ip;
+        rule.severity = severity;
+
+        ipRules_.push_back(rule);
+    }
+
+    std::cout
+        << "Loaded "
+        << ipRules_.size()
+        << " IP Rules\n";
 
     return true;
 }

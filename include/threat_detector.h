@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include "rule.h"
 #include "domain_rule.h"
+#include "ip_rule.h"
 
 struct SecurityAlert
 {
@@ -40,6 +41,13 @@ public:
     bool loadDomainRules(
     const std::string& filename
 );
+bool loadIPRules(
+    const std::string& filename
+);
+
+void analyzeIP(
+    const std::string& srcIP
+);
 
 void analyzeDomain(
     const std::string& srcIP,
@@ -68,7 +76,6 @@ void analyzeDomain(
     {
         return alerts_.size();
     }
-
 private:
     std::unordered_map<
         std::string,
@@ -79,12 +86,20 @@ private:
         std::string
     > alertedScanners_;
 
-    std::vector<Rule> rules_;
-     std::vector<DomainRule>
-domainRules_;
+    // ADD THIS
+    std::unordered_set<
+        std::string
+    > alertedIPs_;
 
-    std::vector<
-        SecurityAlert
-    > alerts_;
+    std::vector<Rule> rules_;
+
+    std::vector<DomainRule>
+    domainRules_;
+
+    std::vector<IPRule>
+    ipRules_;
+
+    std::vector<SecurityAlert>
+    alerts_;
 
 };
