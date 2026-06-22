@@ -72,6 +72,8 @@ void analyzeDomain(
         return alerts_;
     }
 
+  
+
     size_t getAlertCount() const
     {
         return alerts_.size();
@@ -86,10 +88,13 @@ private:
         std::string
     > alertedScanners_;
 
-    // ADD THIS
     std::unordered_set<
         std::string
     > alertedIPs_;
+
+    std::unordered_set<
+        std::string
+    > alertedDomains_;
 
     std::vector<Rule> rules_;
 

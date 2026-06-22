@@ -1,8 +1,10 @@
 #include "threat_detector.h"
+#include "transaction_manager.h"
+#include "global_state.h"
 
 #include <iostream>
 #include <cctype>
-
+#include <ctime>
 namespace
 {
     bool looksSuspiciousDomain(
@@ -259,13 +261,55 @@ for (const auto& rule :
         ) != std::string::npos
     )
     {
-        alerts_.push_back(
-        {
-            rule.severity,
-            "Blocked Domain",
-            srcIP,
-            domain
-        });
+        if (alertedDomains_.count(domain))
+{
+    return;
+}
+
+alertedDomains_.insert(domain);
+
+Transaction tx;
+
+tx.id =
+    "TX-" +
+    std::to_string(
+        std::time(nullptr)
+    );
+
+tx.sourceIP =
+    srcIP;
+
+tx.domain =
+    domain;
+
+tx.reason =
+    "Blocked Domain";
+
+tx.riskScore = 85;
+
+tx.recommendation =
+    "BLOCK";
+
+tx.aiSummary =
+    "The requested domain matched a blocked-domain policy. "
+    "Risk level is HIGH and communication should be blocked.";
+
+tx.status =
+    "PENDING";
+
+if (gTransactionManager)
+{
+    gTransactionManager
+        ->addTransaction(tx);
+}
+
+alerts_.push_back(
+{
+    rule.severity,
+    "Blocked Domain",
+    srcIP,
+    domain
+});
 
         return;
     }
@@ -295,20 +339,27 @@ for (const auto& rule :
         return;
     }
 
-    if (
-        looksSuspiciousDomain(
-            domain
-        )
+  if (
+    looksSuspiciousDomain(
+        domain
     )
+)
+{
+    if (alertedDomains_.count(domain))
     {
-        alerts_.push_back(
-        {
-            "MEDIUM",
-            "Suspicious Domain",
-            srcIP,
-            domain
-        });
+        return;
     }
+
+    alertedDomains_.insert(domain);
+
+    alerts_.push_back(
+    {
+        "MEDIUM",
+        "Suspicious Domain",
+        srcIP,
+        domain
+    });
+}
 }
 
 void ThreatDetector::analyzeIP(
@@ -327,14 +378,47 @@ void ThreatDetector::analyzeIP(
 
             alertedIPs_.insert(srcIP);
 
-            alerts_.push_back(
-            {
-                rule.severity,
-                "Malicious IP",
-                srcIP,
-                srcIP
-            });
+ Transaction tx;
 
+tx.id =
+    "TX-" +
+    std::to_string(
+        std::time(nullptr)
+    );
+
+tx.sourceIP =
+    srcIP;
+
+tx.domain =
+    srcIP;
+
+tx.reason =
+    "Malicious IP";
+
+tx.riskScore = 95;
+
+tx.recommendation =
+    "BLOCK";
+
+tx.aiSummary =
+    "Traffic matches a known malicious IP address. "
+    "Connection presents a critical security risk.";
+tx.status =
+    "PENDING";
+
+if (gTransactionManager)
+{
+    gTransactionManager
+        ->addTransaction(tx);
+}
+
+          alerts_.push_back(
+{
+    rule.severity,
+    "Malicious IP",
+    srcIP,
+    "Matched threat intelligence feed"
+});
             return;
         }
     }

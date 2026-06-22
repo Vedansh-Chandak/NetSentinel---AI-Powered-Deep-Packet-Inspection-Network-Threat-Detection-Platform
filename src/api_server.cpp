@@ -1,5 +1,6 @@
 #include "api_server.h"
 #include "global_state.h"
+#include "transaction_manager.h"
 
 #include <iostream>
 #include <thread>
@@ -490,6 +491,212 @@ else if (
     body += "]";
 }
 
+//transaction
+else if (
+    request.find("GET /transactions")
+    != std::string::npos)
+{
+    body = "[";
+
+    bool first = true;
+
+    if (gTransactionManager)
+    {
+        for (const auto& tx :
+             gTransactionManager
+                ->getTransactions())
+        {
+            if (!first)
+            {
+                body += ",";
+            }
+
+            first = false;
+
+            body += "{";
+
+            body +=
+                "\"id\":\"" +
+                tx.id +
+                "\",";
+
+            body +=
+                "\"sourceIP\":\"" +
+                tx.sourceIP +
+                "\",";
+
+            body +=
+                "\"domain\":\"" +
+                tx.domain +
+                "\",";
+
+            body +=
+                "\"reason\":\"" +
+                tx.reason +
+                "\",";
+
+            body +=
+                "\"status\":\"" +
+                tx.status +
+                "\",";
+
+            body +=
+    "\"riskScore\":" +
+    std::to_string(
+        tx.riskScore
+    ) +
+    ",";
+
+    body +=
+    "\"recommendation\":\"" +
+    tx.recommendation +
+    "\",";
+
+            body +=
+                "\"aiSummary\":\"" +
+                tx.aiSummary +
+                "\"";
+
+            body += "}";
+        }
+    }
+
+    body += "]";
+}
+
+//allow-transation
+
+else if (
+    request.find(
+        "GET /transaction/allow"
+    ) != std::string::npos)
+{
+    size_t pos =
+        request.find("id=");
+
+    if (
+        pos != std::string::npos &&
+        gTransactionManager
+    )
+    {
+        std::string id =
+            request.substr(
+                pos + 3
+            );
+
+        size_t end =
+            id.find(' ');
+
+        if (
+            end != std::string::npos
+        )
+        {
+            id =
+                id.substr(
+                    0,
+                    end
+                );
+        }
+
+        gTransactionManager
+            ->allowTransaction(id);
+    }
+
+    body =
+        "{\"success\":true}";
+}
+
+//block-transation
+
+else if (
+    request.find(
+        "GET /transaction/block"
+    ) != std::string::npos)
+{
+    size_t pos =
+        request.find("id=");
+
+    if (
+        pos != std::string::npos &&
+        gTransactionManager
+    )
+    {
+        std::string id =
+            request.substr(
+                pos + 3
+            );
+
+        size_t end =
+            id.find(' ');
+
+        if (
+            end != std::string::npos
+        )
+        {
+            id =
+                id.substr(
+                    0,
+                    end
+                );
+        }
+
+        gTransactionManager
+            ->blockTransaction(id);
+    }
+
+    body =
+        "{\"success\":true}";
+}
+
+
+//history
+else if (
+    request.find("GET /threat-history")
+    != std::string::npos)
+{
+    body = "[";
+
+    bool first = true;
+
+    if (gThreatDetector)
+    {
+        for (const auto& alert :
+             gThreatDetector->getAlerts())
+        {
+            if (!first)
+                body += ",";
+
+            first = false;
+
+            body += "{";
+
+            body +=
+                "\"severity\":\"" +
+                alert.severity +
+                "\",";
+
+            body +=
+                "\"type\":\"" +
+                alert.type +
+                "\",";
+
+            body +=
+                "\"source\":\"" +
+                alert.sourceIP +
+                "\",";
+
+            body +=
+                "\"details\":\"" +
+                alert.details +
+                "\"";
+
+            body += "}";
+        }
+    }
+
+    body += "]";
+}
+
 // =====================================
 // GET /rules
 // =====================================
@@ -545,7 +752,7 @@ else if (
     != std::string::npos)
 {
     body =
-R"(<!DOCTYPE html>
+R"HTML(<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -567,6 +774,7 @@ R"(<!DOCTYPE html>
       <div class="w-7 h-7 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500"></div>
       <span class="font-semibold text-white text-[15px]">NetSentinel</span>
     </div>
+    
 
     <nav id="sidebarNav" class="flex flex-col gap-1 text-sm">
       <button data-view="overview" class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition">
@@ -584,6 +792,26 @@ R"(<!DOCTYPE html>
       <button data-view="rules" class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition">
         <span class="dot w-1.5 h-1.5 rounded-full"></span> Rules
       </button>
+
+   <button
+data-view="history"
+class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition">
+
+<span class="dot w-1.5 h-1.5 rounded-full"></span>
+
+<span>Threat History</span>
+
+</button>
+
+<button
+data-view="transactions"
+class="nav-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition">
+
+<span class="dot w-1.5 h-1.5 rounded-full"></span>
+
+<span>Transactions</span>
+
+</button>
     </nav>
 
     <div class="mt-auto rounded-xl bg-white/[0.04] border border-white/5 p-4 text-xs text-slate-400">
@@ -732,7 +960,7 @@ R"(<!DOCTYPE html>
       <div class="bg-[#13151f] border border-white/5 rounded-2xl p-5">
         <h2 class="text-sm font-medium text-white mb-4">Detection Rules</h2>
         <table class="w-full text-sm">
-          <thead>
+        <thead>
             <tr class="text-left text-xs text-slate-500 border-b border-white/5">
               <th class="pb-2 font-normal">Rule Name</th>
               <th class="pb-2 font-normal">Port</th>
@@ -744,17 +972,95 @@ R"(<!DOCTYPE html>
       </div>
     </section>
 
+    <!-- ============ VIEW: HISTORY ============ -->
+<section id="view-history" class="view">
+  <div class="bg-[#13151f] border border-white/5 rounded-2xl p-5">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-medium text-white">
+        Threat History
+      </h2>
+
+      <span id="historyCount"
+      class="text-[11px] px-2 py-0.5 rounded-full
+      bg-rose-500/10 text-rose-400 font-medium">
+      0
+      </span>
+    </div>
+
+    <div id="historyTable"
+    class="flex flex-col gap-2">
+    </div>
+
+  </div>
+</section>
+
+<section id="view-transactions" class="view">
+
+<div class="bg-[#13151f]
+border border-white/5
+rounded-2xl p-5">
+
+<div class="flex items-center
+justify-between mb-4">
+
+<h2 class="text-sm font-medium text-white">
+Transaction Review Queue
+</h2>
+
+<span id="transactionCount"
+class="text-[11px]
+px-2 py-0.5
+rounded-full
+bg-violet-500/10
+text-violet-400">
+0
+</span>
+
+</div>
+
+<table class="w-full text-sm">
+
+<thead>
+<tr class="border-b border-white/5
+text-slate-500">
+
+<th class="text-left py-2">ID</th>
+<th class="text-left py-2">Domain</th>
+<th class="text-left py-2">Reason</th>
+<th class="text-left py-2">Risk</th>
+<th class="text-left py-2">Recommendation</th>
+<th class="text-left py-2">Status</th>
+<th class="text-left py-2">AI Summary</th>
+<th class="text-left py-2">Action</th>
+
+</tr>
+</thead>
+
+<tbody id="transactionsTable">
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
   </main>
 
 <script>
 const titles = {
-  overview:     ["Network Overview",   "Real-time packet inspection & threat detection"],
-  flows:        ["Active Flows",       "Every tracked connection by 5-tuple"],
-  applications: ["Applications",       "Traffic broken down by classified app"],
-  alerts:       ["Security Alerts",    "Every threat detected since capture started"],
-  rules:        ["Detection Rules",    "Port and domain rules currently loaded"]
+  overview:     ["Network Overview", "Real-time packet inspection & threat detection"],
+  flows:        ["Active Flows", "Every tracked connection by 5-tuple"],
+  applications: ["Applications", "Traffic broken down by classified app"],
+  alerts:       ["Security Alerts", "Every threat detected since capture started"],
+  rules:        ["Detection Rules", "Port and domain rules currently loaded"],
+  history:      ["Threat History", "Historical security events and detections"],
+  transactions: [
+  "Transactions",
+  "AI-assisted security review queue"
+],
 };
-
 function setActiveView(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-' + view).classList.add('active');
@@ -820,6 +1126,141 @@ async function refresh() {
     </tr>
   `).join('');
 
+  // transaction
+  let transactions =
+await (
+await fetch('/transactions')
+).json();
+
+document.getElementById(
+'transactionCount'
+).innerText =
+transactions.length;
+
+document.getElementById(
+'transactionsTable'
+).innerHTML =
+transactions.map(tx => `
+
+<tr class="border-b
+border-white/5">
+
+<td class="py-3">
+${tx.id}
+</td>
+
+<td class="py-3">
+${tx.domain}
+</td>
+
+<td class="py-3">
+${tx.reason}
+</td>
+
+<td class="py-3">
+
+<span class="
+px-2 py-1 rounded-lg text-xs
+
+${tx.status === 'PENDING'
+? 'bg-yellow-500/10 text-yellow-400'
+: tx.status === 'ALLOWED'
+? 'bg-green-500/10 text-green-400'
+: 'bg-red-500/10 text-red-400'}
+">
+
+${tx.status}
+
+</span>
+
+</td>
+
+<td class="py-3">
+
+<span class="
+px-2 py-1 rounded-lg text-xs
+
+${tx.riskScore >= 80
+? 'bg-red-500/10 text-red-400'
+: tx.riskScore >= 60
+? 'bg-yellow-500/10 text-yellow-400'
+: 'bg-green-500/10 text-green-400'}
+">
+
+${tx.riskScore}/100
+
+</span>
+
+</td>
+
+<td class="py-3">
+
+<span class="
+font-medium
+
+${tx.recommendation === 'BLOCK'
+? 'text-red-400'
+: tx.recommendation === 'REVIEW'
+? 'text-yellow-400'
+: 'text-green-400'}
+">
+
+${tx.recommendation}
+
+</span>
+
+</td>
+
+
+
+<td class="py-3 text-slate-400">
+
+${tx.aiSummary}
+
+</td>
+
+<td class="py-3">
+
+${tx.status === 'PENDING'
+? `
+<button
+onclick="allowTx('${tx.id}')"
+class="px-3 py-1 rounded-lg
+bg-green-500/10
+text-green-400
+hover:bg-green-500/20">
+
+Allow
+
+</button>
+
+<button
+onclick="blockTx('${tx.id}')"
+class="px-3 py-1 rounded-lg
+bg-red-500/10
+text-red-400
+hover:bg-red-500/20
+ml-2">
+
+Block
+
+</button>
+`
+: `
+<span class="text-slate-500">
+Reviewed
+</span>
+`
+}
+
+</td>
+
+
+
+</tr>
+
+`).join('');
+
   // ---- Alerts (shared by Overview + Alerts tab) ----
   let alerts = await (await fetch('/alerts')).json();
   document.getElementById('alertCountOverview').innerText = alerts.length;
@@ -881,6 +1322,52 @@ async function refresh() {
       `).join('')
     : `<tr><td colspan="5" class="py-4 text-slate-500">No active flows.</td></tr>`;
 
+// ---- Threat History ----
+let history =
+await (await fetch('/threat-history'))
+.json();
+
+document.getElementById(
+'historyCount'
+).innerText = history.length;
+
+document.getElementById(
+'historyTable'
+).innerHTML =
+history.length
+? history.map(h => `
+<div class="flex items-start gap-3
+px-3 py-2.5 rounded-lg
+border ${sevColor(h.severity)}">
+
+<span class="text-[10px]
+font-semibold uppercase
+tracking-wide mt-0.5">
+${h.severity}
+</span>
+
+<div class="flex-1">
+<p class="text-xs font-medium
+text-slate-200">
+${h.type}
+</p>
+
+<p class="text-xs text-slate-500">
+${h.source}
+</p>
+
+<p class="text-xs text-slate-400">
+${h.details}
+</p>
+</div>
+
+</div>
+`).join('')
+: `<p class="text-sm text-slate-500">
+No threat history available.
+</p>`;
+
+
   // ---- Rules ----
   let rules = await (await fetch('/rules')).json();
   document.getElementById('rulesTable').innerHTML = rules.length
@@ -894,6 +1381,25 @@ async function refresh() {
     : `<tr><td colspan="3" class="py-4 text-slate-500">No rules loaded.</td></tr>`;
 }
 
+async function allowTx(id)
+{
+    await fetch(
+        '/transaction/allow?id=' +
+        id
+    );
+
+    refresh();
+}
+
+async function blockTx(id)
+{
+    await fetch(
+        '/transaction/block?id=' +
+        id
+    );
+
+    refresh();
+}
 // Restore last selected tab, default to overview
 setActiveView(localStorage.getItem('netsentinel_view') || 'overview');
 
@@ -903,7 +1409,7 @@ setInterval(refresh, 3000);
 
 </body>
 </html>
-)";
+)HTML";
     std::string response =
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/html\r\n"

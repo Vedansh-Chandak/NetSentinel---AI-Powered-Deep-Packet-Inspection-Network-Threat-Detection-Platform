@@ -90,6 +90,7 @@ bool LiveCapture::start(const char* interfaceName)
 AppTracker appTracker;
 TopTalker topTalker;
 ThreatDetector threatDetector;
+TransactionManager transactionManager;
 
 if (!threatDetector.loadRules("rules.txt"))
 {
@@ -113,6 +114,8 @@ if (!threatDetector.loadIPRules(
         << "Failed to load bad_ips.txt\n";
 }
 
+
+
 ProtocolStats protocolStats;
 
 gFlowTracker = &tracker;
@@ -120,6 +123,7 @@ gAppTracker = &appTracker;
 gTopTalker = &topTalker;
 gProtocolStats = &protocolStats;
 gThreatDetector = &threatDetector;
+gTransactionManager = &transactionManager;
 
 std::cout << "\n===== GLOBAL STATE =====\n";
 
